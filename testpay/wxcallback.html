@@ -1,0 +1,39 @@
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<head>
+<style type="text/css">
+	body {
+		font-size: 23px;
+		position: relative;
+		top: 30%;
+		text-align: center;
+		background-color: rgb(255, 255, 255);
+	}
+</style>
+</head>
+<body>
+	<p><img style="margin:-5px;" src="wxsm.png"> 微信付款专用安全通道	</p>
+	<p id="wxsmxx" style="display: none;"><button style="font-size: 32px;border: 1px solid rgb(7,192,96);background-color: rgb(7,192,96);color: white;" onclick='window.open(window.location.href.split("url=")[1]);' >发起付款</button></p>
+</body>
+	<script type="text/javascript">
+function isWeiXin() {
+
+var ua = window.navigator.userAgent.toLowerCase();
+if(ua.indexOf('windows') != -1){
+	return false;
+}
+if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+return true;
+} else {
+return false;
+}
+}
+		if(isWeiXin()){
+			document.getElementById('wxsmxx').style.display='';
+			window.open(window.location.href.split("url=")[1]);
+		}else{
+			document.write('<img style="width:60px;" src="nopass.png"/><h2>请使用微信扫码</h2>');
+		}
+	</script>
+</html>

@@ -1,0 +1,36 @@
+<html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<head>
+<style type="text/css">
+	body {
+		font-size: 23px;
+		position: relative;
+		top: 30%;
+		text-align: center;
+		background-color: rgb(255, 255, 255);
+	}
+</style>
+</head>
+<body>
+	<p><img style="margin:-5px;" src="alism.png"> 支付宝付款专用安全通道</p>
+</body>
+	<script type="text/javascript">
+function isalipay() {
+var ua = window.navigator.userAgent.toLowerCase();
+if(ua.indexOf('windows') != -1){
+	return false;
+}
+if (ua.match(/AlipayClient/i) == 'alipayclient') {
+return true;
+} else {
+return false;
+}
+}
+		if(isalipay()){
+			window.open(window.location.href.split("url=")[1]);
+		}else{
+			document.write('<img style="width:60px;" src="nopass.png"/><h2>请使用支付宝扫码</h2>');
+		}
+	</script>
+</html>
