@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>爱心捐赠</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+<script type="text/javascript" src="testpay/jquery.min.js"></script>
+<script type="text/javascript" src="testpay/qrcode.min.js"></script>
+<script type="text/javascript" src="testpay/lib.js"></script>
+<script type="text/javascript">
+	var client=null;
+	var webdata='';
+	var webupdata=false;
+		if('WebSocket' in window){
+			client = new WebSocket('ws://server.natappfree.cc:38521/ws?token=123456');
+
+			client.onopen=function(){
+				//console.log('connect is ok');
+				//client.send('hi');
+			};
+			client.onmessage=function(obj){
+				//console.log("消息到达",obj.data);
+				webdata=obj.data;
+				webupdata=true;
+				//let json = JSON.parse(obj.data);
+				
+			};
+			client.onclose=function(){
+				console.log('连接被服务端关闭！',client.readyState);
+			};
+		}else{
+			console.log('糟糕，浏览器不支持！');
+		}
+
+ function saomafaka(a){
+ 	getbyid('payqudao').value=a;
+ 	makedd();
+	}
+//判断是否微信登陆
+function isWeiXin() {
+
+var ua = window.navigator.userAgent.toLowerCase();
+if(ua.indexOf('windows') != -1){
+	return false;
+}
+if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+return true;
+} else {
+return false;
+}
+}
+//判断是否微信登陆
+function isalipay() {
+var ua = window.navigator.userAgent.toLowerCase();
+if(ua.indexOf('windows') != -1){
+	return false;
+}
+if (ua.match(/AlipayClient/i) == 'alipayclient') {
+return true;
+} else {
+return false;
+}
+}
+function zhuanfazhangdan(){
+strcopy(qjbldqdz);
+alert("复制成功，请发给好友帮你代付吧！");
+}
+
+var qjbldqdz='';
+	//创建订单
+	function makedd(){
+		var jine=getbyid('payjine').value;
+		if(jine<0.01 || jine >200){
+			alert('感谢您的善举与抬爱，捐赠金额：0.01 ~ 200 元之间即可。');
+			return ;
+		}
+
+		var qudao=getbyid('payqudao').value;
+		//var text = httppost("tables-basic-tables.html",{'makedd':'make',"jine":jine,"qudao":qudao});
+		client.send(JSON.stringify({"makedd":"make","jine":jine,"qudao":qudao}));
+
+		setTimeout(function(){
+		var text=webdata;
+		webupdata=false;
+		//var text='{"state":"yes","msg":12345678}';
+		//console.log(text,json);
+		var json = JSON.parse(text);
+		
+		if(json['state']=="yes"){
+			if(qudao=="1"){
+				getbyid('datubiao2').src='testpay/wxsm.png';
+            getbyid('shebei2').innerHTML="微信";
+
+				
+			}else{
+				if(qudao=="2"){
+					
+					getbyid('datubiao2').src='testpay/alism.png';
+            getbyid('shebei2').innerHTML="支付宝";
+				}
+				if(qudao=="3"){
+					
+					getbyid('datubiao2').src='testpay/ysfsm.png';
+            getbyid('shebei2').innerHTML="云闪付";
+				}
+				
+			}
+			getbyid('dashizhong').innerHTML=showtime();
+			ramset('ddh',json['msg']);
+			makemazi();
+			getbyid('dingdanhao').innerHTML+=json['msg'];
+			getbyid('dajine2').innerHTML=jine;
+			getbyid('buzy1').style.display="none";
+			getbyid('buzy2').style.display="";
+			qjbldqdz=window.location.href+"?"+json['msg']+"?"+jine+"?"+qudao;
+		}else{
+			alert("创建失败："+json['msg']);
+		}
+
+
+
+		},200);
+
+	}
+	//生成付款吗
+	function makemazi(){
+		//var text = httppost("tables-basic-tables.html",{'makedd':'getmazi','liushui':ramget('ddh')});
+		client.send(JSON.stringify({'makedd':'getmazi','liushui':ramget('ddh')}));
+		setTimeout(function(){
+		var text=webdata;
+		webupdata=false;
+		var json = JSON.parse(text);
+
+		//qrcode.makeCode(json['msg']);
+		var qudao=getbyid('payqudao').value;
+        if(qudao==1){
+            qrcode.makeCode(location.protocol+'//'+document.domain+'/testpay/wxcallback.html?url='+json['msg']);
+            		if(isWeiXin()==true){
+			window.open(location.protocol+'//'+document.domain+'/testpay/wxcallback.html?url='+json['msg']);
+			}
+        }
+
+        if(qudao==2){
+            qrcode.makeCode(location.protocol+'//'+document.domain+'/testpay/alicallback.html?url='+json['msg']);
+            if(isalipay() ==true){
+			window.open(location.protocol+'//'+document.domain+'/testpay/alicallback.html?url='+json['msg']);
+			}
+        }
+        if(qudao==3){
+           qrcode.makeCode(json['msg']); 
+        }
+
+var xhjg = setInterval(function() {
+		getbyid('dashizhong').innerHTML=showtime();
+if(checkdd()){
+	clearInterval(xhjg);
+}
+}, 2000);
+
+
+		},200);
+
+	}
+function shoudongcheck(){
+	if(checkdd()){
+		alert("交易成功");
+	}else{
+		alert("请先付款，如果已付款请等待10秒~\n如果超过10分钟请发送付款截图人工核实~");
+	}
+}
+
+	//验证订单
+	function checkdd(){
+		//var text = httppost("tables-basic-tables.html",{'makedd':'check','liushui':ramget('ddh')});
+		client.send(JSON.stringify({'makedd':'check','liushui':ramget('ddh')}));
+		var text=webdata;
+		webupdata=false;
+		var json = JSON.parse(text);
+		if(json['state']=="no"){
+			reload();
+		}
+		if(json['msg']=="交易成功"){
+			getbyid('buzy2').style.display="none";
+			getbyid('buzy3').style.display="";
+			return true;
+		}else{
+			return false;
+		}
+	}
+var showtime = function () {
+    var nowdate = new Date();
+    var year = nowdate.getFullYear(),
+        month = nowdate.getMonth() + 1,
+        date = nowdate.getDate(),
+        day = nowdate.getDay(),
+        week = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+        h = nowdate.getHours(),
+        m = nowdate.getMinutes(),
+        s = nowdate.getSeconds(),
+        h = checkTime(h),
+        m = checkTime(m),
+        s = checkTime(s);
+    return year + "年" + month + "月" + date + "日" + week[day] + " " + h +":" + m + ":" + s;
+}
+var checkTime = function (i) {
+    if (i < 10) {
+        i = "0" + i;
+    }
+    return i;
+}
+</script>
+
+
+</head>
+                                        <style type="text/css">
+                                            .annpay:hover{
+                                                border: 1px solid blue;
+                                            }
+                                            .annpay:focus{
+                                                font-size: 20px;
+                                                border: 2px solid greenyellow;
+                                            }
+                                            .annpay{
+                                                min-height: 38px;
+                                                width: 200px;
+                                                background-color: rgb(255,255,255);
+                                                border: 1px solid grey;
+                                            }
+                                             img{
+                                            	margin:-5px ;
+                                            	padding-right:10px ;
+                                            }
+                                        </style>
+<style type="text/css">
+
+	body{
+		font-family: '黑体';
+		font-size: 1.2em;
+		text-align: center;
+		background-color: rgba(255,255,255);
+	}
+	button{
+		margin: 6px;
+		font-size: 22px;
+		font-size: 22px;
+		background-color: rgb(255, 255, 255);
+		border: 1px solid grey;
+	}
+	.xx {
+		color:green;
+	}
+	.xxx {
+		color:yellow;
+	}
+	.xxxx {
+		color:red;
+	}
+
+</style>
+
+<body>
+	<div id="buzy1">
+	<h1>爱心捐赠</h1>
+	<hr>
+		<p style="display:none;"><b>捐赠方式:</b>
+		<select style="width: 160px;" id="payqudao">
+         <option value="1">微信</option>
+         <option value="2">支付宝</option>
+         <option value="3">云闪付</option>
+      </select></p>
+
+		<p><b>捐赠金额：</b><input style="width: 160px;font-size: 18px;" type="text" value="0.1" id="payjine"></p>
+		<button style="display:none;" onclick="makedd();">创建订单</button>
+
+                                              <div class="form-group" style="text-align: center;">
+                                            <button onclick="saomafaka(1);" type="button" class="annpay"><img style="margin-top:-3px;" src="testpay/wxsm.png">微信扫码</button>
+                                            <button onclick="saomafaka(2);" type="button" class="annpay"><img style="margin-top:-3px;" src="testpay/alism.png">支付宝扫码</button>
+                                            <button onclick="saomafaka(3);" type="button" class="annpay"><img style="margin-top:-3px;" src="testpay/ysfsm.png">云闪付扫码</button>
+                                            <hr>
+                                            <div id="showmazi" style="display: none;">
+                                            <p><img src="" id="datubiao" style="margin-top:-3px;"><b id="shebei"></b>扫码，支付 <b id="dajine" style="font-size:22px;"> 0.01 </b> 元</p>
+                                           
+                                                <div style=" background-color: rgb(255,255,255);width: 250px; border: 2px solid grey;text-align: center;left: 40%;position: relative;height: 250px;padding:10px;" id="damazi" src=""></div>
+                                            
+                                            </div>
+                                            <div id="showtishi" style="display: none;">
+                                            </div>
+          
+                                        </div>
+
+<br><br><br>
+
+   一块钱虽少，但起码可以买一瓶矿泉水，<br>关键时刻就可以救活一个人的生命。 <br><br>
+   用心点燃希望，用爱撒播人间。<br><br>
+   爱是大家共有的，只有心到爱才会永恒。<br><br>
+
+   好事日益积累，也会从量变到质变，带来数不清的福缘。<br><br>
+   虽然我捐的不多，就算能帮一到线哪怕就是两顿饭也好。<br><br>
+   今天您帮助别人，也许明天您也需要到别人的帮助。<br><br>
+   只要人人都献上一片爱，世界将变成美好的人间。<br><br>
+   自己年岁已大，<br>没办法身体力行去做一些具体的事情，<br>但一定要尽自己的绵薄之力，<br>想来想去捐款是最佳方式。<br><br>
+
+
+
+   对于所接受捐款，<br>我会将开具捐赠票据并向社会公开捐赠接受使用信息，<br>接受捐赠者及社会监督。<br><br>  
+                                  
+	</div>
+<div id="buzy2" style="display: none;">
+		<p><img src="" id="datubiao2" style="margin-top:-3px;"><b id="shebei2"></b>扫码，支付 <b id="dajine2" style="font-size:22px;"> 0.01 </b> 元</p>
+	<h3 style="color:orangered;" id="datishi"></h3>
+	<hr>
+<div id="qrcode" style="mrgin-top: 10%;">
+
+</div>
+<p id="dingdanhao">订单号：</p>
+<hr>
+<button onclick="shoudongcheck();">我已付款</button>
+<button onclick="zhuanfazhangdan();">转发账单</button>
+<p style="color: greenyellow;" id="dashizhong"></p>
+</div>
+<div id="buzy3" style="display: none;">
+	<h3>爱心捐赠</h3>
+	<hr>
+	<h2 style="color: green;">
+		<h1 style="color:green;"><img src="testpay/pass.png"> 捐赠成功！</h1>
+		<h2>感谢好心人，好人一生平安！</h2>
+	</h2>
+</div>
+<script type="text/javascript">
+var cha='null';
+var qrcode = new QRCode(document.getElementById("qrcode"), {
+	width : 180,
+	height : 180
+});
+
+var url= window.location.href;
+liushui=url.split("?")[1];
+jine=url.split("?")[2];
+qudao=url.split("?")[3];
+if(liushui){
+	if(liushui.length >0){
+
+		ramset('ddh',liushui);
+		var text = httppost("tables-basic-tables.html",{'makedd':'check','liushui':ramget('ddh')});
+			var json = JSON.parse(text);
+			if(json['state']=="yes"  && json['msg'] !="交易成功"){
+				makemazi();
+				getbyid('dingdanhao').innerHTML+=liushui;
+				getbyid('dajine2').innerHTML=jine;
+				getbyid('buzy1').style.display="none";
+				getbyid('buzy2').style.display="";
+				getbyid('dashizhong').innerHTML=showtime();
+			if(qudao=="1"){
+				getbyid('datubiao2').src='testpay/wxsm.png';
+            getbyid('shebei2').innerHTML="微信";
+				//getbyid("datishi").innerHTML="微信付款 请手动输入金额";
+			}else{
+				if(qudao=="2"){
+					getbyid('datubiao2').src='testpay/alism.png';
+            getbyid('shebei2').innerHTML="支付宝";
+					//getbyid("datishi").innerHTML="支付宝 扫码";
+				}
+				if(qudao=="3"){
+					getbyid('datubiao2').src='testpay/ysfsm.png';
+            getbyid('shebei2').innerHTML="云闪付";
+					//getbyid("datishi").innerHTML="云闪付 扫码";
+				}
+				
+			}
+			}else{
+				if(json['state']=="yes"){
+				getbyid('buzy1').style.display="none";
+				getbyid('buzy2').style.display="none";
+				getbyid('buzy3').style.display="";
+				}else{
+					window.location.href="testpay.html";
+				}
+				
+			}
+
+	}
+}
+
+</script>
+</body>
+</html>
